@@ -1,42 +1,43 @@
 package com.cg.entity;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-	@Table(name="WalletUser")
-
-	public class WalletUser {
-	
+@Table(name="User")
+public class WalletUser {
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	@Column(length=10)
-	private Integer user_Id;
-	@Column(length=10)
-	private String user_Name;
-	@Column(length=10)
+	private int userId;
+	private String userName;
+	private String phoneNumber;
 	private String password;
-	@Column(length=10)
-	private String phone_Number;
-	@Column(length=10)
-	private String login_Name;
-	
-	
-    public Integer getUser_Id() {
-		return user_Id;
+	private String loginName;
+	//one to one relationship between WalletUser and WalletAccount
+	@OneToOne(mappedBy="walletUser",cascade=CascadeType.ALL,fetch = FetchType.LAZY,orphanRemoval=true)
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+	private WalletAccount walletAccount;
+	public int getUserId() {
+		return userId;
 	}
-	public void setUser_Id(Integer user_Id) {
-		this.user_Id = user_Id;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
-	public String getUser_Name() {
-		return user_Name;
+	public String getUserName() {
+		return userName;
 	}
-	public void setUser_Name(String user_Name) {
-		this.user_Name = user_Name;
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
 	}
 	public String getPassword() {
 		return password;
@@ -44,17 +45,17 @@ import javax.persistence.Table;
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getPhone_Number() {
-		return phone_Number;
+	public String getLoginName() {
+		return loginName;
 	}
-	public void setPhone_Number(String phone_Number) {
-		this.phone_Number = phone_Number;
+	public void setLoginName(String loginName) {
+		this.loginName = loginName;
 	}
-	public String getLogin_Name() {
-		return login_Name;
+	public WalletAccount getWalletAccount() {
+		return walletAccount;
 	}
-	public void setLogin_Name(String login_Name) {
-		this.login_Name = login_Name;
+	public void setWalletAccount(WalletAccount walletAccount) {
+		this.walletAccount = walletAccount;
 	}
 
-	}
+}
