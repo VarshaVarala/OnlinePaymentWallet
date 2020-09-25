@@ -1,4 +1,4 @@
-package com.cg.controller;
+package com.cg.onlineWallet.controller;
 
 
 
@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cg.entity.AccountTransactions;
-import com.cg.entity.WalletAccount;
-import com.cg.entity.WalletUser;
-import com.cg.service.ServiceClass;
+import com.cg.onlineWallet.entity.AccountTransactions;
+import com.cg.onlineWallet.entity.WalletAccount;
+import com.cg.onlineWallet.entity.WalletUser;
+import com.cg.onlineWallet.service.ServiceClass;
 
 import exceptions.IdNotFoundException;
 

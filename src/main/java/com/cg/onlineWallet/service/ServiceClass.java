@@ -1,4 +1,4 @@
-package com.cg.service;
+package com.cg.onlineWallet.service;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -8,12 +8,12 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.cg.dao.AccountTransactionsInterface;
-import com.cg.dao.WalletAccountInterface;
-import com.cg.dao.WalletUserInterface;
-import com.cg.entity.AccountTransactions;
-import com.cg.entity.WalletAccount;
-import com.cg.entity.WalletUser;
+import com.cg.onlineWallet.dao.AccountTransactionsInterface;
+import com.cg.onlineWallet.dao.WalletAccountInterface;
+import com.cg.onlineWallet.dao.WalletUserInterface;
+import com.cg.onlineWallet.entity.AccountTransactions;
+import com.cg.onlineWallet.entity.WalletAccount;
+import com.cg.onlineWallet.entity.WalletUser;
 
 @Service
 @Transactional
@@ -32,7 +32,7 @@ public class ServiceClass {
 	//user login 
 	public WalletUser userLogin(int userId,String password)
 	{
-		if(walletUserDao.exists(userId))
+		if(walletUserDao.existsById(userId))
 		{
 			WalletUser user=walletUserDao.getOne(userId);
 			String pass=user.getPassword();
@@ -64,7 +64,7 @@ public class ServiceClass {
 	public WalletAccount addMoney(WalletAccount walletAccount)
 	{
 		int accountId=walletAccount.getAccountId();
-		if(walletAccountDao.exists(accountId))
+		if(walletAccountDao.existsById(accountId))
 		{
 			WalletAccount account=walletAccountDao.getOne(accountId);
 			double previousBalance=account.getAccountBalance();
@@ -85,7 +85,7 @@ public class ServiceClass {
 	//To transfer funds from one account to another account
 	public String transferFunds(int senderAccountId,int receiverAccountId,double amount)
 	{
-		if(walletAccountDao.exists(receiverAccountId))
+		if(walletAccountDao.existsById(receiverAccountId))
 		{
 			WalletAccount senderAccount=walletAccountDao.getOne(senderAccountId);
 			if(senderAccount.getAccountBalance()>amount)
@@ -135,7 +135,7 @@ public class ServiceClass {
 	//Retrieving transaction details 
 	public Set<AccountTransactions> transactionDetails(int accountId)
 	{
-		if(walletAccountDao.exists(accountId))
+		if(walletAccountDao.existsById(accountId))
 		{
 			WalletAccount account=walletAccountDao.getOne(accountId);
 			return account.getWalletTransactions();

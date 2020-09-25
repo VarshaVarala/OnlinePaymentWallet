@@ -1,4 +1,4 @@
-package com.cg.entity;
+package com.cg.onlineWallet.entity;
 
 import java.time.LocalDateTime;
 

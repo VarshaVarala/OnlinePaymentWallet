@@ -1,4 +1,4 @@
-package com.cg.entity;
+package com.cg.onlineWallet.entity;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -9,7 +9,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name="User")
+@Table(name="User_Account")
 public class WalletUser {
 	@Id
 	private int userId;
