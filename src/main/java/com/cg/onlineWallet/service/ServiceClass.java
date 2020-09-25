@@ -24,12 +24,19 @@ public class ServiceClass {
 	WalletAccountInterface walletAccountDao;
 	@Autowired
 	WalletUserInterface walletUserDao;
-	//Adding User details into the database
+	
+	//Adding User details into the database 
 	public WalletUser addUser(WalletUser user)
 	{
+		if(walletUserDao.existsById(user.getUserId())) 
+		{
+			return null;
+		}
+		else {
 		return walletUserDao.save(user);
+	    }
 	}
-	//user login 
+	//User login check
 	public WalletUser userLogin(int userId,String password)
 	{
 		if(walletUserDao.existsById(userId))
@@ -50,7 +57,7 @@ public class ServiceClass {
 			return null;
 		}
 	}
-	//Creating wallet account to a particular user
+	//Creating wallet account for a particular user ID, only one account per user
 	public WalletAccount addAccount(int userId,WalletAccount account)
 	{
 		walletAccountDao.save(account);
@@ -60,7 +67,7 @@ public class ServiceClass {
 		 walletUserDao.save(user);
 		 return walletAccountDao.save(account);
 	}
-	//Adding money to user wallet account
+	//Adding money to user wallet account and updating the balance
 	public WalletAccount addMoney(WalletAccount walletAccount)
 	{
 		int accountId=walletAccount.getAccountId();
@@ -76,7 +83,7 @@ public class ServiceClass {
 			return null;
 		}
 	}
-	//To show User wallet account balance
+	//To show User wallet account balance 
 	public double retriveBalance(int accountId)
 	{
 		WalletAccount account=walletAccountDao.getOne(accountId);
@@ -88,18 +95,21 @@ public class ServiceClass {
 		if(walletAccountDao.existsById(receiverAccountId))
 		{
 			WalletAccount senderAccount=walletAccountDao.getOne(senderAccountId);
+			//when sender is trying to transfer amount greater than his balance
 			if(senderAccount.getAccountBalance()>amount)
 			{
-				//Amount debit from sender account
+				//Amount debit from sender account and update your balance
 				double money=senderAccount.getAccountBalance()-amount;
 				senderAccount.setAccountBalance(money);
 				walletAccountDao.save(senderAccount);
+				
 				//Amount credited into receiver account
 				WalletAccount receiverAccount=walletAccountDao.getOne(receiverAccountId);
 				double money1=receiverAccount.getAccountBalance()+amount;
 				receiverAccount.setAccountBalance(money1);
 				walletAccountDao.save(receiverAccount);
-				//creating sender account transaction details
+				
+				//creating sender account transaction details for transaction table
 				LocalDateTime now = LocalDateTime.now();  
 				AccountTransactions senderTransaction=new AccountTransactions();
 				senderTransaction.setAccountBalance(senderAccount.getAccountBalance());
@@ -110,6 +120,7 @@ public class ServiceClass {
 				transactionsDao.save(senderTransaction);
 				senderAccount.getWalletTransactions().add(senderTransaction);
 				walletAccountDao.save(senderAccount);
+				
 				//creating receiver account transaction details
 				AccountTransactions receiverTransaction=new AccountTransactions();
 				receiverTransaction.setAccountBalance(receiverAccount.getAccountBalance());

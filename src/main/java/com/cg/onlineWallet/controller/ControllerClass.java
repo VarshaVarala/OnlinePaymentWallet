@@ -29,7 +29,7 @@ import exceptions.IdNotFoundException;
 public class ControllerClass {
 	@Autowired
 	private ServiceClass service;
-	//Creating User account
+	//Creating User account and saving the data in wallet user object
 	@PostMapping("/createuser")
 	public ResponseEntity<String> createUser(@RequestBody WalletUser walletUser)
 	{
@@ -43,14 +43,14 @@ public class ControllerClass {
 			return new ResponseEntity<String>("User account created successfully", new HttpHeaders(), HttpStatus.OK);
 		}		
 	}
-	//User Login
+	//User Login with exception for unregistered user
 	@GetMapping("/userlogin/{userId}/{password}")
 	public ResponseEntity<WalletUser> userLogin(@PathVariable("userId") int userId,@PathVariable("password") String password)
 	{
 		WalletUser login=service.userLogin(userId, password);
 		if(login==null)
 		{
-			throw new IdNotFoundException("User does not exist");
+			throw new IdNotFoundException("User does not exist");  
 		}
 		else
 		{
@@ -58,7 +58,7 @@ public class ControllerClass {
 		}
 		
 	}
-	//Creating payment wallet account
+	//Creating a payment wallet account with user Id
 	@PostMapping("/createaccount/{userId}")
 	public ResponseEntity<String> createAccount(@PathVariable("userId") int userId,@RequestBody WalletAccount walletAccount)
 	{
@@ -66,6 +66,7 @@ public class ControllerClass {
 		if (account == null) 
 		{
 			throw new IdNotFoundException("Wallet account not created");
+			// Exception for invalid account Id
 		} 
 		else 
 		{
@@ -73,7 +74,7 @@ public class ControllerClass {
 		}	
 		
 	}
-	//Adding amount into wallet account
+	//Adding amount into wallet account and updating the balance
 	@PostMapping("/addmoney")
 	public ResponseEntity<String> addMoney(@RequestBody WalletAccount accountDetails)
 	{
@@ -88,7 +89,7 @@ public class ControllerClass {
 		}	
 		
 	}
-	//To show payment wallet account balance
+	//To show payment wallet account balance using account ID
 	@GetMapping("/accountbalance/{accountId}")
 	public ResponseEntity<Double> accountBalance(@PathVariable("accountId") int accountId)
 	{
@@ -104,7 +105,7 @@ public class ControllerClass {
 
 		
 	}
-	//To retrieve the transaction details of particular user
+	//To retrieve the transaction details of particular user using user Id
 	@GetMapping("/transactiondetails/{accountId}")
 	public ResponseEntity<Set<AccountTransactions>> transactionDetails(@PathVariable("accountId") int accountId)
 	{

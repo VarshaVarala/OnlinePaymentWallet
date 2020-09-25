@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import com.cg.onlineWallet.entity.AccountTransactions;
 
-
 @Repository
 public interface AccountTransactionsInterface extends JpaRepository<AccountTransactions,Integer>{
 
