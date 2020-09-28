@@ -21,7 +21,9 @@ import com.cg.onlineWallet.entity.WalletAccount;
 import com.cg.onlineWallet.entity.WalletUser;
 import com.cg.onlineWallet.service.ServiceClass;
 
+import exceptions.IdAlreadyExists;
 import exceptions.IdNotFoundException;
+
 
 @RestController
 @RequestMapping("/onlinewallet")
@@ -29,6 +31,7 @@ import exceptions.IdNotFoundException;
 public class ControllerClass {
 	@Autowired
 	private ServiceClass service;
+	
 	//Creating User account and saving the data in wallet user object
 	@PostMapping("/createuser")
 	public ResponseEntity<String> createUser(@RequestBody WalletUser walletUser)
@@ -36,7 +39,7 @@ public class ControllerClass {
 		WalletUser user=service.addUser(walletUser);
 		if (user == null) 
 		{
-			throw new IdNotFoundException("User account not created");
+			throw new IdAlreadyExists("UserId already exist");
 		} 
 		else 
 		{
@@ -50,7 +53,8 @@ public class ControllerClass {
 		WalletUser login=service.userLogin(userId, password);
 		if(login==null)
 		{
-			throw new IdNotFoundException("User does not exist");  
+			// Exception for invalid account Id
+			throw new IdNotFoundException("User does not exist");
 		}
 		else
 		{
@@ -58,27 +62,29 @@ public class ControllerClass {
 		}
 		
 	}
-	//Creating a payment wallet account with user Id
+	
+	//Creating payment wallet account
 	@PostMapping("/createaccount/{userId}")
 	public ResponseEntity<String> createAccount(@PathVariable("userId") int userId,@RequestBody WalletAccount walletAccount)
 	{
-		WalletAccount account=service.addAccount(userId,walletAccount);
-		if (account == null) 
+		String account=service.addAccount(userId,walletAccount);
+		if (account == "Successfully created") 
 		{
-			throw new IdNotFoundException("Wallet account not created");
-			// Exception for invalid account Id
+			return new ResponseEntity<String>("Wallet account created successfully", new HttpHeaders(), HttpStatus.OK);
 		} 
 		else 
 		{
-			return new ResponseEntity<String>("Wallet account created successfully", new HttpHeaders(), HttpStatus.OK);
+			throw new IdNotFoundException(account);
+			
 		}	
 		
 	}
+	
 	//Adding amount into wallet account and updating the balance
-	@PostMapping("/addmoney")
-	public ResponseEntity<String> addMoney(@RequestBody WalletAccount accountDetails)
+	@PostMapping("/addmoney/{userId}")
+	public ResponseEntity<String> addMoney(@RequestBody WalletAccount accountDetails,@PathVariable("userId") int userId)
 	{
-		WalletAccount money=service.addMoney(accountDetails);
+		WalletAccount money=service.addMoney(accountDetails,userId);
 		if (money == null) 
 		{
 			throw new IdNotFoundException("AccountId is Invalid");
@@ -89,23 +95,30 @@ public class ControllerClass {
 		}	
 		
 	}
-	//To show payment wallet account balance using account ID
-	@GetMapping("/accountbalance/{accountId}")
-	public ResponseEntity<Double> accountBalance(@PathVariable("accountId") int accountId)
+	//To show payment wallet account balance
+	@GetMapping("/accountbalance/{accountId}/{userId}")
+	public ResponseEntity<Double> accountBalance(@PathVariable("accountId") int accountId,@PathVariable("userId") int userId)
 	{
-		double accountBalance=service.retriveBalance(accountId);
-		return new ResponseEntity<Double>(accountBalance, new HttpHeaders(), HttpStatus.OK);
+		double accountBalance=service.retriveBalance(accountId,userId);
+		if(accountBalance==-1)
+		{
+			throw new IdNotFoundException("AccountId is Invalid");
+		}
+		else
+		{
+			return new ResponseEntity<Double>(accountBalance, new HttpHeaders(), HttpStatus.OK);
+		}
 	}
 	//To transfer fund from one account to another account
-	@GetMapping("/transferfund/{senderaccountId}/{recieveraccountId}/{amount}")
-	public ResponseEntity<String> transferFund(@PathVariable("senderaccountId") int senderAccountId,@PathVariable("recieveraccountId") int receiverAccountId,@PathVariable("amount") double amount)
+	@GetMapping("/transferfund/{userId}/{senderaccountId}/{recieveraccountId}/{amount}")
+	public ResponseEntity<String> transferFund(@PathVariable("userId") int userId,@PathVariable("senderaccountId") int senderAccountId,@PathVariable("recieveraccountId") int receiverAccountId,@PathVariable("amount") double amount)
 	{
-		String status=service.transferFunds(senderAccountId, receiverAccountId, amount);
+		String status=service.transferFunds(userId,senderAccountId, receiverAccountId, amount);
 		return new ResponseEntity<String>(status, new HttpHeaders(), HttpStatus.OK);
 
 		
 	}
-	//To retrieve the transaction details of particular user using user Id
+	//To retrieve the transaction details of particular user
 	@GetMapping("/transactiondetails/{accountId}")
 	public ResponseEntity<Set<AccountTransactions>> transactionDetails(@PathVariable("accountId") int accountId)
 	{

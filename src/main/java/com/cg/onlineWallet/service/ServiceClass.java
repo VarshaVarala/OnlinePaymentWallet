@@ -25,18 +25,19 @@ public class ServiceClass {
 	@Autowired
 	WalletUserInterface walletUserDao;
 	
-	//Adding User details into the database 
+	//Adding new User details into the database 
 	public WalletUser addUser(WalletUser user)
 	{
-		if(walletUserDao.existsById(user.getUserId())) 
+		if(walletUserDao.existsById(user.getUserId()))
 		{
 			return null;
 		}
-		else {
-		return walletUserDao.save(user);
-	    }
+		else
+		{
+			return walletUserDao.save(user);
+		}
 	}
-	//User login check
+	//user login check
 	public WalletUser userLogin(int userId,String password)
 	{
 		if(walletUserDao.existsById(userId))
@@ -58,91 +59,135 @@ public class ServiceClass {
 		}
 	}
 	//Creating wallet account for a particular user ID, only one account per user
-	public WalletAccount addAccount(int userId,WalletAccount account)
+	public String addAccount(int userId,WalletAccount account)
 	{
-		walletAccountDao.save(account);
-		 WalletUser user=walletUserDao.getOne(userId);
-		 account.setWalletUser(user);
-		 user.setWalletAccount(account);
-		 walletUserDao.save(user);
-		 return walletAccountDao.save(account);
+		if(walletUserDao.existsById(userId))
+		{
+			if(walletAccountDao.existsById(account.getAccountId()))
+			{
+				return "AccountId already exist";
+			}
+			else
+			{
+				walletAccountDao.save(account);
+				WalletUser user=walletUserDao.getOne(userId);
+				account.setWalletUser(user);
+				user.setWalletAccount(account);
+				walletUserDao.save(user);
+				walletAccountDao.save(account);
+				return "Successfully created";
+			}
+		}
+		else
+		{
+			return "UserId does not exist";
+		}
 	}
+	
 	//Adding money to user wallet account and updating the balance
-	public WalletAccount addMoney(WalletAccount walletAccount)
+	public WalletAccount addMoney(WalletAccount walletAccount,int userId)
 	{
 		int accountId=walletAccount.getAccountId();
-		if(walletAccountDao.existsById(accountId))
+		WalletUser user=walletUserDao.getOne(userId);
+		int accountId1=user.getWalletAccount().getAccountId();
+		if(accountId1==accountId)
 		{
-			WalletAccount account=walletAccountDao.getOne(accountId);
-			double previousBalance=account.getAccountBalance();
-			account.setAccountBalance(walletAccount.getAccountBalance()+previousBalance);
-			return walletAccountDao.save(account);
+			if(walletAccountDao.existsById(accountId))
+			{
+				WalletAccount account=walletAccountDao.getOne(accountId);
+				double previousBalance=account.getAccountBalance();
+				account.setAccountBalance(walletAccount.getAccountBalance()+previousBalance);
+				return walletAccountDao.save(account);
+			}
+			else
+			{
+				return null;
+			}
 		}
 		else
 		{
 			return null;
 		}
 	}
-	//To show User wallet account balance 
-	public double retriveBalance(int accountId)
+	//To show User wallet account balance
+	public double retriveBalance(int accountId,int userId)
 	{
 		WalletAccount account=walletAccountDao.getOne(accountId);
-		return account.getAccountBalance();
+		WalletUser user=walletUserDao.getOne(userId);
+		int accountId1=user.getWalletAccount().getAccountId();
+		if(accountId1==accountId)
+		{
+			return account.getAccountBalance();
+		}
+		else
+		{
+			return -1;
+		}
 	}
 	//To transfer funds from one account to another account
-	public String transferFunds(int senderAccountId,int receiverAccountId,double amount)
+	public String transferFunds(int userId,int senderAccountId,int receiverAccountId,double amount)
 	{
-		if(walletAccountDao.existsById(receiverAccountId))
+		WalletUser user=walletUserDao.getOne(userId);
+		int accountId=user.getWalletAccount().getAccountId();
+		if(accountId==senderAccountId)
 		{
-			WalletAccount senderAccount=walletAccountDao.getOne(senderAccountId);
-			//when sender is trying to transfer amount greater than his balance
-			if(senderAccount.getAccountBalance()>amount)
+			if(walletAccountDao.existsById(receiverAccountId))
 			{
-				//Amount debit from sender account and update your balance
-				double money=senderAccount.getAccountBalance()-amount;
-				senderAccount.setAccountBalance(money);
-				walletAccountDao.save(senderAccount);
-				
-				//Amount credited into receiver account
-				WalletAccount receiverAccount=walletAccountDao.getOne(receiverAccountId);
-				double money1=receiverAccount.getAccountBalance()+amount;
-				receiverAccount.setAccountBalance(money1);
-				walletAccountDao.save(receiverAccount);
-				
-				//creating sender account transaction details for transaction table
-				LocalDateTime now = LocalDateTime.now();  
-				AccountTransactions senderTransaction=new AccountTransactions();
-				senderTransaction.setAccountBalance(senderAccount.getAccountBalance());
-				senderTransaction.setAmount(amount);
-				senderTransaction.setDateOfTransaction(now);
-				senderTransaction.setDiscription("Amount debited");
-				senderTransaction.setWalletAccount(senderAccount);
-				transactionsDao.save(senderTransaction);
-				senderAccount.getWalletTransactions().add(senderTransaction);
-				walletAccountDao.save(senderAccount);
-				
-				//creating receiver account transaction details
-				AccountTransactions receiverTransaction=new AccountTransactions();
-				receiverTransaction.setAccountBalance(receiverAccount.getAccountBalance());
-				receiverTransaction.setAmount(amount);
-				receiverTransaction.setDateOfTransaction(now);
-				receiverTransaction.setDiscription("Amount credited");
-				receiverTransaction.setWalletAccount(receiverAccount);
-				transactionsDao.save(receiverTransaction);
-				receiverAccount.getWalletTransactions().add(receiverTransaction);
-				walletAccountDao.save(receiverAccount);
-				return "SuccessFully Transfered";	
+				WalletAccount senderAccount=walletAccountDao.getOne(senderAccountId);
+				//when sender is trying to transfer amount greater than his balance
+				if(senderAccount.getAccountBalance()>amount)
+				{
+					//Amount debited from sender account
+					double money=senderAccount.getAccountBalance()-amount;
+					senderAccount.setAccountBalance(money);
+					walletAccountDao.save(senderAccount);
+					
+					//Amount credited into receiver account
+					WalletAccount receiverAccount=walletAccountDao.getOne(receiverAccountId);
+					double money1=receiverAccount.getAccountBalance()+amount;
+					receiverAccount.setAccountBalance(money1);
+					walletAccountDao.save(receiverAccount);
+					
+					//creating sender account transaction details
+					LocalDateTime now = LocalDateTime.now();  
+					AccountTransactions senderTransaction=new AccountTransactions();
+					senderTransaction.setAccountBalance(senderAccount.getAccountBalance());
+					senderTransaction.setAmount(amount);
+					senderTransaction.setDateOfTransaction(now);
+					senderTransaction.setDiscription("Amount debited");
+					senderTransaction.setWalletAccount(senderAccount);
+					transactionsDao.save(senderTransaction);
+					senderAccount.getWalletTransactions().add(senderTransaction);
+					walletAccountDao.save(senderAccount);
+					
+					//creating receiver account transaction details
+					AccountTransactions receiverTransaction=new AccountTransactions();
+					receiverTransaction.setAccountBalance(receiverAccount.getAccountBalance());
+					receiverTransaction.setAmount(amount);
+					receiverTransaction.setDateOfTransaction(now);
+					receiverTransaction.setDiscription("Amount credited");
+					receiverTransaction.setWalletAccount(receiverAccount);
+					transactionsDao.save(receiverTransaction);
+					receiverAccount.getWalletTransactions().add(receiverTransaction);
+					walletAccountDao.save(receiverAccount);
+					return "SuccessFully Transfered";	
+				}
+				else
+				{
+					return "Insufficient account balance";
+				}
 			}
 			else
 			{
-				return "Insufficient account balance";
+				return "Receiver AccountId does not exist";
 			}
 		}
 		else
 		{
-			return "Receiver AccountId does not exist";
+			return "Invalid AccountId";
 		}
 	}
+	
 	//Retrieving transaction details 
 	public Set<AccountTransactions> transactionDetails(int accountId)
 	{
